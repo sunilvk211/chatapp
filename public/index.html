@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chat app</title>
+    <style>
+        .mainbox{
+            width: 95%;
+            box-sizing: border-box;
+            border: 5px solid red;
+            margin: 5px auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items:stretch ;
+        }
+        .chatting{
+            width: 55%;
+            border: 2px solid blue;
+        }
+        .chatting input{
+            margin: 5px;
+            font-size: 25px;
+            width: 90%;
+        }
+        .userslist{
+            width: 35%;
+            border: 2px solid violet;
+        }
+        .userslist li{
+            font-size: 22px;
+            color: darkblue;
+            margin: 4px auto;
+            list-style: decimal inside;
+
+        }
+        #messages{
+            color: #000;
+            font-size: 30px;
+        }
+        #messages p{
+            border: 1px solid #000;
+            border-radius: 10px;
+            padding: 5px;
+            box-shadow: 0px 0px 10px 2px violet inset;
+        }
+        p span{
+            font-style: italic;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>chatting</h1>
+    <div class="mainbox">
+        <div class="chatting">
+            <input type="text" id="message" placeholder="Enter message">
+            <button id="sendBtn"> Send Now</button>
+            <div id="messages">   </div>
+        </div>  
+        <div class="userslist">
+            <h3>Active Users List</h3>
+            <ol  id="userslist">
+                <li> raja dummy</li>
+                <li> sonu dumy</li>
+            </ol> 
+        </div> 
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+            const socket = io();
+            let username;
+            do{
+                username = prompt('Enter Your Name');
+            }while(! username);
+                
+            const sendBtn = document.getElementById('sendBtn');
+            const messageInput = document.getElementById('message');
+            const allmessages = document.getElementById('messages');
+           let userslist = document.getElementById('userslist');
+
+            socket.emit('joined',username)
+            socket.on('usersjoined',(allusers)=>{
+                userslist.innerHTML = "";
+                let myusers = Object.values(allusers);
+                for(i=0 ;i<myusers.length ; i++){
+                    let li  = document.createElement('li');
+                    li.innerText = myusers[i];
+                    userslist.append(li);
+                }
+            });
+        sendBtn.addEventListener("click",(e)=>{
+                const message = messageInput.value;
+                socket.emit('user-message',{u:username, m:message}); 
+                messageInput.value ="";
+            });
+
+            socket.on('server-message',(data)=>{
+                // console.log("Message receive on client "+message);
+                const p = document.createElement('p');
+                p.innerHTML = data.msg + " :<span>"+data.user+"</span>";
+                allmessages.appendChild(p);
+            })
+    </script>
+</body>
+</html>
